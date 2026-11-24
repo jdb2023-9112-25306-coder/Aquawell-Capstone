@@ -12,6 +12,7 @@ import {
   Droplets,
   Eye,
   EyeOff,
+  FileText,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -269,7 +270,7 @@ export default function App() {
     const ok = (page: string) => canAccessPage(profile.role, page, data?.permissions);
     const all: [string, React.ElementType][] = [
       ["Orders", ClipboardList], ["Live Map", MapPinned], ["Rider Status", Truck], ["Shop Location", Store], ["Customers", Users], ["Companies", Building2],
-      ["Inventory", Package], ["Sales & Forecasts", Activity], ["People & Roles", Users], ["Access Control", SlidersHorizontal], ["Audit Log", ShieldCheck],
+      ["Inventory", Package], ["Sales & Forecasts", Activity], ["Reports", FileText], ["People & Roles", Users], ["Access Control", SlidersHorizontal], ["Audit Log", ShieldCheck],
     ];
     if (profile.role === "admin" || profile.role === "staff")
       return [...common, ...all.filter(([l]) => ok(l)), ["Account", UserRound]];

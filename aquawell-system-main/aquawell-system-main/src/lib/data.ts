@@ -169,7 +169,7 @@ export function canAccessPage(roleValue: unknown, page: string, perms?: Permissi
   let role: string;
   try { role = normalizeRole(roleValue); } catch { return false; }
   const pages: Record<string, string[]> = {
-    admin: ["Overview", "Notifications", "Orders", "Live Map", "Rider Status", "Shop Location", "Companies", "Inventory", "Sales & Forecasts", "People & Roles", "Access Control", "Audit Log", "Account"],
+    admin: ["Overview", "Notifications", "Orders", "Live Map", "Rider Status", "Shop Location", "Companies", "Inventory", "Sales & Forecasts", "Reports", "People & Roles", "Access Control", "Audit Log", "Account"],
     staff: ["Overview", "Notifications", "Orders", "Live Map", "Rider Status", "Shop Location", "Customers", "Companies", "Inventory", "Account"],
     delivery: ["Overview", "Notifications", "My Deliveries", "Live Map", "Account"],
     customer: ["Notifications", "Order Water", "My Orders", "Account"],

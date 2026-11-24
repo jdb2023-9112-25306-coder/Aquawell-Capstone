@@ -468,6 +468,64 @@ export function DashboardRouter({
       </>
     );
 
+  if (page === "Reports" && profile.role === "admin") {
+    const countBy = (s: string) => allOrders.filter((o: any) => o.status === s).length;
+    return (
+      <>
+        <section className="panel">
+          <div className="panel-heading">
+            <div>
+              <h2>Orders report</h2>
+              <p>Summary of orders, with the full list available for download.</p>
+            </div>
+            <button className="btn secondary" onClick={() => downloadCSV(allOrders, "aquawell-orders-report.csv")}>
+              <ArrowDownToLine size={16} /> Export CSV
+            </button>
+          </div>
+          <div className="metric-grid">
+            <Metric icon={ClipboardList} label="Total orders" value={allOrders.length} note="All orders on record" tone="teal" />
+            <Metric icon={ClipboardList} label="Pending" value={countBy("PENDING")} note="Awaiting confirmation" tone="amber" />
+            <Metric icon={ClipboardList} label="Confirmed" value={countBy("CONFIRMED")} note="Accepted by staff" tone="blue" />
+            <Metric icon={Truck} label="Delivered" value={countBy("DELIVERED")} note="Marked delivered by riders" tone="violet" />
+          </div>
+        </section>
+
+        <section className="panel">
+          <div className="panel-heading">
+            <div>
+              <h2>Sales report</h2>
+              <p>Paid transactions, one record per order.</p>
+            </div>
+            <button className="btn secondary" onClick={() => downloadCSV(sales, "aquawell-sales-report.csv")}>
+              <ArrowDownToLine size={16} /> Export CSV
+            </button>
+          </div>
+          <div className="metric-grid">
+            <Metric icon={CircleDollarSign} label="Total sales" value={money(totalSales)} note="Verified paid sales" tone="teal" />
+            <Metric icon={Activity} label="Sales records" value={sales.length} note="One record per paid order" tone="blue" />
+          </div>
+          <SalesTable sales={sales} />
+        </section>
+
+        <section className="panel">
+          <div className="panel-heading">
+            <div>
+              <h2>Inventory report</h2>
+              <p>Current stock levels, with the full list available for download.</p>
+            </div>
+            <button className="btn secondary" onClick={() => downloadCSV(inventory, "aquawell-inventory-report.csv")}>
+              <ArrowDownToLine size={16} /> Export CSV
+            </button>
+          </div>
+          <div className="metric-grid">
+            <Metric icon={Package} label="Inventory items" value={inventory.length} note="Products on record" tone="blue" />
+            <Metric icon={Package} label="Low stock" value={lowStock} note="At or below alert level" tone="amber" />
+          </div>
+        </section>
+      </>
+    );
+  }
+
   if (page === "People & Roles")
     return (
       <PeopleAndRoles
