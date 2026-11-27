@@ -76,11 +76,42 @@ export function DashboardRouter({
         .filter((p: any) => p.role === "customer")
         .map((p: any) => ({ ...p, customer_id: p.id }));
 
-  const filteredCustomers = customers.filter((c: any) => [c.full_name, c.name, c.email, c.phone, c.address, c.customer_id, c.id, c.company_name, c.affiliation].some((value: any) => String(value ?? "").toLowerCase().includes(customerQuery.toLowerCase())));
-  const customerPageCount = Math.max(1, Math.ceil(filteredCustomers.length / customerRowsPerPage));
-  const visibleCustomers = filteredCustomers.slice((customerPage - 1) * customerRowsPerPage, customerPage * customerRowsPerPage);
-  React.useEffect(() => setCustomerPage(1), [customerQuery, customerRowsPerPage]);
-  const filteredNotifications = (data.notifications || []).filter((n: any) => [n.title, n.description, n.order_id].some((value: any) => String(value ?? "").toLowerCase().includes(notificationQuery.toLowerCase())));
+  const filteredCustomers = customers.filter((c: any) =>
+    [
+      c.full_name,
+      c.name,
+      c.email,
+      c.phone,
+      c.address,
+      c.customer_id,
+      c.id,
+      c.company_name,
+      c.affiliation,
+    ].some((value: any) =>
+      String(value ?? "")
+        .toLowerCase()
+        .includes(customerQuery.toLowerCase()),
+    ),
+  );
+  const customerPageCount = Math.max(
+    1,
+    Math.ceil(filteredCustomers.length / customerRowsPerPage),
+  );
+  const visibleCustomers = filteredCustomers.slice(
+    (customerPage - 1) * customerRowsPerPage,
+    customerPage * customerRowsPerPage,
+  );
+  React.useEffect(
+    () => setCustomerPage(1),
+    [customerQuery, customerRowsPerPage],
+  );
+  const filteredNotifications = (data.notifications || []).filter((n: any) =>
+    [n.title, n.description, n.order_id].some((value: any) =>
+      String(value ?? "")
+        .toLowerCase()
+        .includes(notificationQuery.toLowerCase()),
+    ),
+  );
   const totalSales = sales.reduce(
     (n: number, s: any) => n + Number(s.total_amount || 0),
     0,
@@ -120,11 +151,13 @@ export function DashboardRouter({
         <div className="metric-grid">
           <Metric
             icon={ClipboardList}
-            label={
-              profile.role === "customer" ? "Your orders" : "Orders"
-            }
+            label={profile.role === "customer" ? "Your orders" : "Orders"}
             value={allOrders.length}
-            note={profile.role === "customer" ? `${pending} waiting to be confirmed` : `${pending} awaiting confirmation`}
+            note={
+              profile.role === "customer"
+                ? `${pending} waiting to be confirmed`
+                : `${pending} awaiting confirmation`
+            }
             tone="teal"
           />
           {profile.role === "admin" && (
@@ -146,7 +179,12 @@ export function DashboardRouter({
                   : "Payments to collect"
             }
             value={
-              profile.role === "admin" ? money(totalSales) : profile.role === "customer" ? payments.length : payments.filter((p: any) => p.payment_status === "PENDING").length
+              profile.role === "admin"
+                ? money(totalSales)
+                : profile.role === "customer"
+                  ? payments.length
+                  : payments.filter((p: any) => p.payment_status === "PENDING")
+                      .length
             }
             note={
               profile.role === "admin"
@@ -159,7 +197,11 @@ export function DashboardRouter({
           />
           <Metric
             icon={Truck}
-            label={profile.role === "customer" ? "Deliveries on the way" : "Active deliveries"}
+            label={
+              profile.role === "customer"
+                ? "Deliveries on the way"
+                : "Active deliveries"
+            }
             value={
               allOrders.filter((o: any) => o.status === "OUT FOR-DELIVERY")
                 .length
@@ -168,16 +210,26 @@ export function DashboardRouter({
             tone="violet"
           />
         </div>
-        <div className={`dashboard-grid ${["customer", "delivery"].includes(profile.role) ? "dashboard-grid-single" : ""}`} >
+        <div
+          className={`dashboard-grid ${["customer", "delivery"].includes(profile.role) ? "dashboard-grid-single" : ""}`}
+        >
           <section className="panel recent-panel">
             <div className="panel-heading">
               <div>
                 <h2>
                   {profile.role === "delivery"
                     ? "Assigned deliveries"
-                    : profile.role === "customer" ? "Your latest order" : "Recent orders"}
+                    : profile.role === "customer"
+                      ? "Your latest order"
+                      : "Recent orders"}
                 </h2>
-                <p>{profile.role === "customer" ? "Your most recent order and where it is now" : profile.role === "delivery" ? "Your assigned deliveries and their latest status" : "Latest order activity"}</p>
+                <p>
+                  {profile.role === "customer"
+                    ? "Your most recent order and where it is now"
+                    : profile.role === "delivery"
+                      ? "Your assigned deliveries and their latest status"
+                      : "Latest order activity"}
+                </p>
               </div>
               <button
                 className="text-button"
@@ -195,7 +247,17 @@ export function DashboardRouter({
               </button>
             </div>
             <OrderTable
-              orders={profile.role === "customer" ? [...allOrders].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 1) : allOrders.slice(0, 6)}
+              orders={
+                profile.role === "customer"
+                  ? [...allOrders]
+                      .sort(
+                        (a: any, b: any) =>
+                          new Date(b.created_at).getTime() -
+                          new Date(a.created_at).getTime(),
+                      )
+                      .slice(0, 1)
+                  : allOrders.slice(0, 6)
+              }
               role={profile.role}
               action={action}
               riders={data.riders || []}
@@ -207,108 +269,250 @@ export function DashboardRouter({
               profileId={profile.id}
             />
           </section>
-          {!["customer", "delivery"].includes(profile.role) && <section className="panel quick-panel">
+          {!["customer", "delivery"].includes(profile.role) && (
+            <section className="panel quick-panel">
+              <div className="panel-heading">
+                <div>
+                  <h2>Quick actions</h2>
+                  <p>Common tasks for your role</p>
+                </div>
+              </div>
+              <div className="quick-actions">
+                {profile.role === "admin" && (
+                  <>
+                    <QuickAction
+                      icon={Package}
+                      title="Review inventory"
+                      desc="Stock and low-level items"
+                      onClick={() => onNavigate("Inventory")}
+                    />
+                    <QuickAction
+                      icon={Activity}
+                      title="Sales & forecasts"
+                      desc="Review revenue and demand"
+                      onClick={() => onNavigate("Sales & Forecasts")}
+                    />
+                    <QuickAction
+                      icon={Users}
+                      title="People & roles"
+                      desc="Review account roles"
+                      onClick={() => onNavigate("People & Roles")}
+                    />
+                  </>
+                )}
+                {profile.role === "staff" && (
+                  <>
+                    <QuickAction
+                      icon={ClipboardList}
+                      title="Confirm orders"
+                      desc="Validate stock and accept orders"
+                      onClick={() => onNavigate("Orders")}
+                    />
+                    <QuickAction
+                      icon={Truck}
+                      title="Live delivery map"
+                      desc="Track riders and deliveries"
+                      onClick={() => onNavigate("Live Map")}
+                    />
+                  </>
+                )}
+              </div>
+            </section>
+          )}
+        </div>
+        {!["customer", "delivery"].includes(profile.role) && (
+          <section className="panel bottom-panel">
             <div className="panel-heading">
               <div>
-                <h2>Quick actions</h2>
-                <p>Common tasks for your role</p>
+                <h2>Operational attention</h2>
+                <p>Things that may need your attention</p>
               </div>
             </div>
-            <div className="quick-actions">
+            <div className="attention-grid">
               {profile.role === "admin" && (
-                <>
-                  <QuickAction
-                    icon={Package}
-                    title="Review inventory"
-                    desc="Stock and low-level items"
-                    onClick={() => onNavigate("Inventory")}
-                  />
-                  <QuickAction
-                    icon={Activity}
-                    title="Sales & forecasts"
-                    desc="Review revenue and demand"
-                    onClick={() => onNavigate("Sales & Forecasts")}
-                  />
-                  <QuickAction
-                    icon={Users}
-                    title="People & roles"
-                    desc="Review account roles"
-                    onClick={() => onNavigate("People & Roles")}
-                  />
-                </>
+                <Attention
+                  icon={Package}
+                  title="Low stock"
+                  value={lowStock}
+                  desc="Items at or below their alert level"
+                />
               )}
-              {profile.role === "staff" && (
-                <>
-                  <QuickAction
-                    icon={ClipboardList}
-                    title="Confirm orders"
-                    desc="Validate stock and accept orders"
-                    onClick={() => onNavigate("Orders")}
-                  />
-                  <QuickAction icon={Truck} title="Live delivery map" desc="Track riders and deliveries" onClick={() => onNavigate("Live Map")} />
-                </>
-              )}
+              <Attention
+                icon={ClipboardList}
+                title="Pending orders"
+                value={pending}
+                desc="Orders awaiting staff confirmation"
+              />
+              <Attention
+                icon={CircleDollarSign}
+                title="Payments to collect"
+                value={
+                  payments.filter((p: any) => p.payment_status === "PENDING")
+                    .length
+                }
+                desc="Confirmed orders that are not yet paid"
+              />
             </div>
-          </section>}
-        </div>
-        {!["customer", "delivery"].includes(profile.role) && <section className="panel bottom-panel">
-          <div className="panel-heading">
-            <div>
-              <h2>Operational attention</h2>
-              <p>Things that may need your attention</p>
-            </div>
-          </div>
-          <div className="attention-grid">
-            {profile.role === "admin" && <Attention
-              icon={Package}
-              title="Low stock"
-              value={lowStock}
-              desc="Items at or below their alert level"
-            />}
-            <Attention
-              icon={ClipboardList}
-              title="Pending orders"
-              value={pending}
-              desc="Orders awaiting staff confirmation"
-            />
-            <Attention
-              icon={CircleDollarSign}
-              title="Payments to collect"
-              value={payments.filter((p: any) => p.payment_status === "PENDING").length}
-              desc="Confirmed orders that are not yet paid"
-            />
-          </div>
-        </section>}
+          </section>
+        )}
       </>
     );
 
   if (page === "Rider Status" && ["admin", "staff"].includes(profile.role)) {
-    const riders = (data.riders || []).filter((r: any) => [r.full_name, r.availability].some((value: any) => String(value ?? "").toLowerCase().includes(riderQuery.toLowerCase())));
-    const riderPageCount = Math.max(1, Math.ceil(riders.length / riderRowsPerPage));
-    const visibleRiders = riders.slice((riderPage - 1) * riderRowsPerPage, riderPage * riderRowsPerPage);
-    return <section className="panel">
-      <div className="panel-heading"><div><h2>Rider availability</h2><p>Whether each rider can take new deliveries, and what they are working on right now.</p></div></div>
-      <TableToolbar query={riderQuery} onQueryChange={value => { setRiderQuery(value); setRiderPage(1); }} placeholder="Search rider name or availability…" label="Search riders" rowsPerPage={riderRowsPerPage} onRowsPerPageChange={value => { setRiderRowsPerPage(value); setRiderPage(1); }} resultCount={riders.length} />
-      <div className="table-wrap"><table><thead><tr><th>Rider</th><th>Availability</th><th>Active deliveries</th><th>Current stage</th></tr></thead><tbody>{visibleRiders.map((r: any) => {
-        const active = allOrders.filter((o: any) => o.rider_id === r.profile_id && o.type === "Delivery" && ["CONFIRMED", "OUT FOR-DELIVERY", "DELIVERED"].includes(o.status) && !o.customer_received_at);
-        const out = active.some((o: any) => o.status === "OUT FOR-DELIVERY");
-        const status = out ? "OUT FOR DELIVERY" : (r.availability || "AVAILABLE") === "UNAVAILABLE" ? "UNAVAILABLE" : "AVAILABLE";
-        // Current stage = the rider's single latest delivery, whether it is still out for delivery or already delivered.
-        // A delivery that is still on the road always counts as the latest; otherwise the most recently delivered one.
-        const stamp = (o: any) => new Date((o.status === "DELIVERED" ? o.completed_at : o.out_for_delivery_at) || o.created_at).getTime() || 0;
-        const trips = allOrders.filter((o: any) => o.rider_id === r.profile_id && o.type === "Delivery" && ["OUT FOR-DELIVERY", "DELIVERED"].includes(o.status));
-        const onRoad = trips.filter((o: any) => o.status === "OUT FOR-DELIVERY");
-        const latest = [...(onRoad.length ? onRoad : trips)].sort((a: any, b: any) => stamp(b) - stamp(a))[0];
-        return <tr key={r.profile_id}><td data-label="Rider"><strong>{r.full_name || "Delivery rider"}</strong></td><td data-label="Availability"><span className={`status ${status === "AVAILABLE" ? "success" : status === "UNAVAILABLE" ? "muted" : "warning"}`}>{status === "OUT FOR DELIVERY" ? "Out for delivery" : status === "AVAILABLE" ? "Available" : "Unavailable"}</span></td><td data-label="Active deliveries">{active.length}</td><td data-label="Current stage">{latest ? <><strong>{orderRef(latest)}</strong>: {latest.status}<small className="muted" style={{ display: "block" }}>{latest.status === "DELIVERED" ? "Delivered" : "Left the shop"} {dateFmt(new Date(stamp(latest)).toISOString())}</small></> : "No deliveries yet"}</td></tr>;
-      })}</tbody></table>{!riders.length && <p className="muted">No delivery rider profiles found.</p>}</div>
-      <TablePagination page={riderPage} pageCount={riderPageCount} onPageChange={setRiderPage} start={riders.length ? (riderPage - 1) * riderRowsPerPage + 1 : 0} end={Math.min(riderPage * riderRowsPerPage, riders.length)} total={riders.length} />
-    </section>;
+    const riders = (data.riders || []).filter((r: any) =>
+      [r.full_name, r.availability].some((value: any) =>
+        String(value ?? "")
+          .toLowerCase()
+          .includes(riderQuery.toLowerCase()),
+      ),
+    );
+    const riderPageCount = Math.max(
+      1,
+      Math.ceil(riders.length / riderRowsPerPage),
+    );
+    const visibleRiders = riders.slice(
+      (riderPage - 1) * riderRowsPerPage,
+      riderPage * riderRowsPerPage,
+    );
+    return (
+      <section className="panel">
+        <div className="panel-heading">
+          <div>
+            <h2>Rider availability</h2>
+            <p>
+              Whether each rider can take new deliveries, and what they are
+              working on right now.
+            </p>
+          </div>
+        </div>
+        <TableToolbar
+          query={riderQuery}
+          onQueryChange={(value) => {
+            setRiderQuery(value);
+            setRiderPage(1);
+          }}
+          placeholder="Search rider name or availability…"
+          label="Search riders"
+          rowsPerPage={riderRowsPerPage}
+          onRowsPerPageChange={(value) => {
+            setRiderRowsPerPage(value);
+            setRiderPage(1);
+          }}
+          resultCount={riders.length}
+        />
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Rider</th>
+                <th>Availability</th>
+                <th>Active deliveries</th>
+                <th>Current stage</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visibleRiders.map((r: any) => {
+                const active = allOrders.filter(
+                  (o: any) =>
+                    o.rider_id === r.profile_id &&
+                    o.type === "Delivery" &&
+                    ["CONFIRMED", "OUT FOR-DELIVERY", "DELIVERED"].includes(
+                      o.status,
+                    ) &&
+                    !o.customer_received_at,
+                );
+                const out = active.some(
+                  (o: any) => o.status === "OUT FOR-DELIVERY",
+                );
+                const status = out
+                  ? "OUT FOR DELIVERY"
+                  : (r.availability || "AVAILABLE") === "UNAVAILABLE"
+                    ? "UNAVAILABLE"
+                    : "AVAILABLE";
+                // Current stage = the rider's single latest delivery, whether it is still out for delivery or already delivered.
+                // A delivery that is still on the road always counts as the latest; otherwise the most recently delivered one.
+                const stamp = (o: any) =>
+                  new Date(
+                    (o.status === "DELIVERED"
+                      ? o.completed_at
+                      : o.out_for_delivery_at) || o.created_at,
+                  ).getTime() || 0;
+                const trips = allOrders.filter(
+                  (o: any) =>
+                    o.rider_id === r.profile_id &&
+                    o.type === "Delivery" &&
+                    ["OUT FOR-DELIVERY", "DELIVERED"].includes(o.status),
+                );
+                const onRoad = trips.filter(
+                  (o: any) => o.status === "OUT FOR-DELIVERY",
+                );
+                const latest = [...(onRoad.length ? onRoad : trips)].sort(
+                  (a: any, b: any) => stamp(b) - stamp(a),
+                )[0];
+                return (
+                  <tr key={r.profile_id}>
+                    <td data-label="Rider">
+                      <strong>{r.full_name || "Delivery rider"}</strong>
+                    </td>
+                    <td data-label="Availability">
+                      <span
+                        className={`status ${status === "AVAILABLE" ? "success" : status === "UNAVAILABLE" ? "muted" : "warning"}`}
+                      >
+                        {status === "OUT FOR DELIVERY"
+                          ? "Out for delivery"
+                          : status === "AVAILABLE"
+                            ? "Available"
+                            : "Unavailable"}
+                      </span>
+                    </td>
+                    <td data-label="Active deliveries">{active.length}</td>
+                    <td data-label="Current stage">
+                      {latest ? (
+                        <>
+                          <strong>{orderRef(latest)}</strong>: {latest.status}
+                          <small className="muted" style={{ display: "block" }}>
+                            {latest.status === "DELIVERED"
+                              ? "Delivered"
+                              : "Left the shop"}{" "}
+                            {dateFmt(new Date(stamp(latest)).toISOString())}
+                          </small>
+                        </>
+                      ) : (
+                        "No deliveries yet"
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {!riders.length && (
+            <p className="muted">No delivery rider profiles found.</p>
+          )}
+        </div>
+        <TablePagination
+          page={riderPage}
+          pageCount={riderPageCount}
+          onPageChange={setRiderPage}
+          start={riders.length ? (riderPage - 1) * riderRowsPerPage + 1 : 0}
+          end={Math.min(riderPage * riderRowsPerPage, riders.length)}
+          total={riders.length}
+        />
+      </section>
+    );
   }
 
   if (page === "Shop Location" && ["admin", "staff"].includes(profile.role))
-    return <ShopLocation station={data.station || DEFAULT_STATION_PIN} action={action} busy={busy} />;
+    return (
+      <ShopLocation
+        station={data.station || DEFAULT_STATION_PIN}
+        action={action}
+        busy={busy}
+      />
+    );
 
-  if (page === "Companies" && ["admin", "staff"].includes(profile.role)) return <CompaniesPanel action={action} busy={busy} role={profile.role} />;
+  if (page === "Companies" && ["admin", "staff"].includes(profile.role))
+    return <CompaniesPanel action={action} busy={busy} role={profile.role} />;
 
   if (["Orders", "My Orders", "My Deliveries"].includes(page))
     return (
@@ -324,36 +528,83 @@ export function DashboardRouter({
                   : "Review orders and act only within your role permissions."}
             </p>
           </div>
-          {profile.role === "delivery" && (() => {
-            const available = (profile.delivery_availability || "AVAILABLE") !== "UNAVAILABLE";
-            return (
-              <div className="availability-switch">
-                <span className="muted">My availability</span>
-                <ToggleSwitch
-                  checked={available}
-                  disabled={busy}
-                  label="Delivery availability"
-                  onText="Available"
-                  offText="Unavailable"
-                  onChange={async (next) => {
-                    const ok = await action(
-                      () => updateRiderAvailability(next ? "AVAILABLE" : "UNAVAILABLE"),
-                      next ? "You are marked available for assignments." : "You are marked unavailable.",
-                      { confirm: { title: next ? "Go available?" : "Go unavailable?", message: next ? "Staff will be able to assign new deliveries to you." : "You will not receive new delivery assignments until you switch back.", confirmLabel: next ? "Go available" : "Go unavailable", tone: next ? "primary" : "warning" } },
-                    );
-                    if (ok) onProfileUpdated?.({ ...profile, delivery_availability: next ? "AVAILABLE" : "UNAVAILABLE" });
-                  }}
-                />
-              </div>
-            );
-          })()}
+          {profile.role === "delivery" &&
+            (() => {
+              const available =
+                (profile.delivery_availability || "AVAILABLE") !==
+                "UNAVAILABLE";
+              return (
+                <div className="availability-switch">
+                  <span className="muted">My availability</span>
+                  <ToggleSwitch
+                    checked={available}
+                    disabled={busy}
+                    label="Delivery availability"
+                    onText="Available"
+                    offText="Unavailable"
+                    onChange={async (next) => {
+                      const ok = await action(
+                        () =>
+                          updateRiderAvailability(
+                            next ? "AVAILABLE" : "UNAVAILABLE",
+                          ),
+                        next
+                          ? "You are marked available for assignments."
+                          : "You are marked unavailable.",
+                        {
+                          confirm: {
+                            title: next ? "Go available?" : "Go unavailable?",
+                            message: next
+                              ? "Staff will be able to assign new deliveries to you."
+                              : "You will not receive new delivery assignments until you switch back.",
+                            confirmLabel: next
+                              ? "Go available"
+                              : "Go unavailable",
+                            tone: next ? "primary" : "warning",
+                          },
+                        },
+                      );
+                      if (ok)
+                        onProfileUpdated?.({
+                          ...profile,
+                          delivery_availability: next
+                            ? "AVAILABLE"
+                            : "UNAVAILABLE",
+                        });
+                    }}
+                  />
+                </div>
+              );
+            })()}
         </div>
-        {profile.role === "customer" && allOrders.some((o: any) => o.type === "Delivery" && o.status === "OUT FOR-DELIVERY" && !o.customer_received_at) && (
-          <section className="panel tracking-panel" style={{ marginBottom: 18 }}>
-            <div className="panel-heading"><div><h2>Track your delivery</h2><p>Your rider’s progress to your address.</p></div></div>
-            <LiveMap compact orders={allOrders} riders={data.riders || []} riderLocations={data.riderLocations || []} station={data.station} role="customer" profileId={profile.id} />
-          </section>
-        )}
+        {profile.role === "customer" &&
+          allOrders.some(
+            (o: any) =>
+              o.type === "Delivery" &&
+              o.status === "OUT FOR-DELIVERY" &&
+              !o.customer_received_at,
+          ) && (
+            <section
+              className="panel tracking-panel"
+              style={{ marginBottom: 18 }}
+            >
+              <div className="panel-heading">
+                <div>
+                  <h2>Track your delivery</h2>
+                  <p>Your rider’s progress to your address.</p>
+                </div>
+              </div>
+              <LiveMap
+                compact
+                orders={allOrders}
+                riders={data.riders || []}
+                riderLocations={data.riderLocations || []}
+                station={data.station}
+                role="customer"
+                profileId={profile.id}
+              />
+            </section>
+          )}
         <OrderTable
           orders={orders}
           query={query}
@@ -371,18 +622,45 @@ export function DashboardRouter({
       </section>
     );
 
-  if (page === "Live Map" && ["admin", "staff", "delivery"].includes(profile.role))
+  if (
+    page === "Live Map" &&
+    ["admin", "staff", "delivery"].includes(profile.role)
+  )
     return (
       <section className="panel">
-        <div className="panel-heading"><div><h2>Live delivery map</h2><p>Riders’ live locations, delivery addresses and progress, updated every few seconds.</p></div>{profile.role === "delivery" && <ShareLocationButton autoActive={allOrders.some((o: any) => o.rider_id === profile.id && o.type === "Delivery" && o.status === "OUT FOR-DELIVERY" && !o.customer_received_at)} />}</div>
-        <LiveMap orders={allOrders} riders={data.riders || []} riderLocations={data.riderLocations || []} station={data.station} role={profile.role} profileId={profile.id} />
+        <div className="panel-heading">
+          <div>
+            <h2>Live delivery map</h2>
+            <p>
+              Riders’ live locations, delivery addresses and progress, updated
+              every few seconds.
+            </p>
+          </div>
+          {profile.role === "delivery" && (
+            <ShareLocationButton
+              autoActive={allOrders.some(
+                (o: any) =>
+                  o.rider_id === profile.id &&
+                  o.type === "Delivery" &&
+                  o.status === "OUT FOR-DELIVERY" &&
+                  !o.customer_received_at,
+              )}
+            />
+          )}
+        </div>
+        <LiveMap
+          orders={allOrders}
+          riders={data.riders || []}
+          riderLocations={data.riderLocations || []}
+          station={data.station}
+          role={profile.role}
+          profileId={profile.id}
+        />
       </section>
     );
 
   if (page === "Order Water" && profile.role === "customer")
-    return (
-      <OrderCatalog inventory={inventory} profile={profile} />
-    );
+    return <OrderCatalog inventory={inventory} profile={profile} />;
 
   if (page === "Inventory")
     return (
@@ -434,7 +712,8 @@ export function DashboardRouter({
             <div>
               <h2>Product demand forecast</h2>
               <p>
-                The most recent completed period counts the most (weights 5 : 3 : 2).
+                The most recent completed period counts the most (weights 5 : 3
+                : 2).
               </p>
             </div>
           </div>
@@ -443,18 +722,20 @@ export function DashboardRouter({
               Forecast = (5 × newest + 3 × previous + 2 × oldest) ÷ 10
             </div>
             <p>
-              Forecasts use the three most recent completed days, weeks or months of paid orders. Periods with no sales count as zero.
+              Forecasts use the three most recent completed days, weeks or
+              months of paid orders. Periods with no sales count as zero.
             </p>
           </div>
-          <ForecastTable forecasts={data.forecasts || {}} error={data.forecastError} />
+          <ForecastTable
+            forecasts={data.forecasts || {}}
+            error={data.forecastError}
+          />
         </section>
         <section className="panel">
           <div className="panel-heading">
             <div>
               <h2>Sales ledger</h2>
-              <p>
-                Paid transactions, one record per order.
-              </p>
+              <p>Paid transactions, one record per order.</p>
             </div>
             <button
               className="btn secondary"
@@ -469,24 +750,56 @@ export function DashboardRouter({
     );
 
   if (page === "Reports" && profile.role === "admin") {
-    const countBy = (s: string) => allOrders.filter((o: any) => o.status === s).length;
+    const countBy = (s: string) =>
+      allOrders.filter((o: any) => o.status === s).length;
     return (
       <>
         <section className="panel">
           <div className="panel-heading">
             <div>
               <h2>Orders report</h2>
-              <p>Summary of orders, with the full list available for download.</p>
+              <p>
+                Summary of orders, with the full list available for download.
+              </p>
             </div>
-            <button className="btn secondary" onClick={() => downloadCSV(allOrders, "aquawell-orders-report.csv")}>
+            <button
+              className="btn secondary"
+              onClick={() =>
+                downloadCSV(allOrders, "aquawell-orders-report.csv")
+              }
+            >
               <ArrowDownToLine size={16} /> Export CSV
             </button>
           </div>
           <div className="metric-grid">
-            <Metric icon={ClipboardList} label="Total orders" value={allOrders.length} note="All orders on record" tone="teal" />
-            <Metric icon={ClipboardList} label="Pending" value={countBy("PENDING")} note="Awaiting confirmation" tone="amber" />
-            <Metric icon={ClipboardList} label="Confirmed" value={countBy("CONFIRMED")} note="Accepted by staff" tone="blue" />
-            <Metric icon={Truck} label="Delivered" value={countBy("DELIVERED")} note="Marked delivered by riders" tone="violet" />
+            <Metric
+              icon={ClipboardList}
+              label="Total orders"
+              value={allOrders.length}
+              note="All orders on record"
+              tone="teal"
+            />
+            <Metric
+              icon={ClipboardList}
+              label="Pending"
+              value={countBy("PENDING")}
+              note="Awaiting confirmation"
+              tone="amber"
+            />
+            <Metric
+              icon={ClipboardList}
+              label="Confirmed"
+              value={countBy("CONFIRMED")}
+              note="Accepted by staff"
+              tone="blue"
+            />
+            <Metric
+              icon={Truck}
+              label="Delivered"
+              value={countBy("DELIVERED")}
+              note="Marked delivered by riders"
+              tone="violet"
+            />
           </div>
         </section>
 
@@ -496,13 +809,28 @@ export function DashboardRouter({
               <h2>Sales report</h2>
               <p>Paid transactions, one record per order.</p>
             </div>
-            <button className="btn secondary" onClick={() => downloadCSV(sales, "aquawell-sales-report.csv")}>
+            <button
+              className="btn secondary"
+              onClick={() => downloadCSV(sales, "aquawell-sales-report.csv")}
+            >
               <ArrowDownToLine size={16} /> Export CSV
             </button>
           </div>
           <div className="metric-grid">
-            <Metric icon={CircleDollarSign} label="Total sales" value={money(totalSales)} note="Verified paid sales" tone="teal" />
-            <Metric icon={Activity} label="Sales records" value={sales.length} note="One record per paid order" tone="blue" />
+            <Metric
+              icon={CircleDollarSign}
+              label="Total sales"
+              value={money(totalSales)}
+              note="Verified paid sales"
+              tone="teal"
+            />
+            <Metric
+              icon={Activity}
+              label="Sales records"
+              value={sales.length}
+              note="One record per paid order"
+              tone="blue"
+            />
           </div>
           <SalesTable sales={sales} />
         </section>
@@ -511,15 +839,34 @@ export function DashboardRouter({
           <div className="panel-heading">
             <div>
               <h2>Inventory report</h2>
-              <p>Current stock levels, with the full list available for download.</p>
+              <p>
+                Current stock levels, with the full list available for download.
+              </p>
             </div>
-            <button className="btn secondary" onClick={() => downloadCSV(inventory, "aquawell-inventory-report.csv")}>
+            <button
+              className="btn secondary"
+              onClick={() =>
+                downloadCSV(inventory, "aquawell-inventory-report.csv")
+              }
+            >
               <ArrowDownToLine size={16} /> Export CSV
             </button>
           </div>
           <div className="metric-grid">
-            <Metric icon={Package} label="Inventory items" value={inventory.length} note="Products on record" tone="blue" />
-            <Metric icon={Package} label="Low stock" value={lowStock} note="At or below alert level" tone="amber" />
+            <Metric
+              icon={Package}
+              label="Inventory items"
+              value={inventory.length}
+              note="Products on record"
+              tone="blue"
+            />
+            <Metric
+              icon={Package}
+              label="Low stock"
+              value={lowStock}
+              note="At or below alert level"
+              tone="amber"
+            />
           </div>
         </section>
       </>
@@ -542,79 +889,185 @@ export function DashboardRouter({
     return (
       <section className="panel">
         <div className="panel-heading">
-          <div><h2>Notifications</h2><p>Updates for your account and the orders you can access.</p></div>
-          <span className="count-chip">{filteredNotifications.filter((n: any) => n.unread).length} unread</span>
+          <div>
+            <h2>Notifications</h2>
+            <p>Updates for your account and the orders you can access.</p>
+          </div>
+          <span className="count-chip">
+            {filteredNotifications.filter((n: any) => n.unread).length} unread
+          </span>
         </div>
         <div className="panel-toolbar">
-          <label className="search-box table-search"><Search size={16} /><input value={notificationQuery} onChange={e => setNotificationQuery(e.target.value)} placeholder="Search notifications…" aria-label="Search notifications" /></label>
-          <button className="btn small secondary" disabled={!filteredNotifications.some((n: any) => n.unread) || busy} onClick={() => action(() => markNotificationsRead(), "Notifications marked as read.", { confirm: { title: "Mark all as read?", message: "All unread notifications will be marked as read.", confirmLabel: "Mark all read" } })}>Mark all read</button>
+          <label className="search-box table-search">
+            <Search size={16} />
+            <input
+              value={notificationQuery}
+              onChange={(e) => setNotificationQuery(e.target.value)}
+              placeholder="Search notifications…"
+              aria-label="Search notifications"
+            />
+          </label>
+          <button
+            className="btn small secondary"
+            disabled={!filteredNotifications.some((n: any) => n.unread) || busy}
+            onClick={() =>
+              action(
+                () => markNotificationsRead(),
+                "Notifications marked as read.",
+                {
+                  confirm: {
+                    title: "Mark all as read?",
+                    message: "All unread notifications will be marked as read.",
+                    confirmLabel: "Mark all read",
+                  },
+                },
+              )
+            }
+          >
+            Mark all read
+          </button>
         </div>
         <div className="notification-list">
           {filteredNotifications.map((n: any) => (
             <div className="notification-row" key={n.id}>
-              <span className="notification-icon"><Bell size={17} /></span>
-              <div><strong>{n.title}</strong><p>{n.description}</p><small>{dateFmt(n.created_at)} {n.unread ? "· Unread" : "· Read"}</small></div>
-              {n.order_id && <button className="btn small secondary" onClick={() => onNavigate(profile.role === "customer" ? "My Orders" : profile.role === "delivery" ? "My Deliveries" : "Orders")}>View order</button>}
+              <span className="notification-icon">
+                <Bell size={17} />
+              </span>
+              <div>
+                <strong>{n.title}</strong>
+                <p>{n.description}</p>
+                <small>
+                  {dateFmt(n.created_at)} {n.unread ? "· Unread" : "· Read"}
+                </small>
+              </div>
+              {n.order_id && (
+                <button
+                  className="btn small secondary"
+                  onClick={() =>
+                    onNavigate(
+                      profile.role === "customer"
+                        ? "My Orders"
+                        : profile.role === "delivery"
+                          ? "My Deliveries"
+                          : "Orders",
+                    )
+                  }
+                >
+                  View order
+                </button>
+              )}
             </div>
           ))}
-          {!filteredNotifications.length && <EmptyState title="You're all caught up" text="New order, payment, and delivery updates will appear here." />}
+          {!filteredNotifications.length && (
+            <EmptyState
+              title="You're all caught up"
+              text="New order, payment, and delivery updates will appear here."
+            />
+          )}
         </div>
       </section>
     );
 
   if (page === "Audit Log") {
     // Show people by name, never by UUID: map any ID in the stored text to the profile's name.
-    const nameById = new Map<string, string>((data.profiles || []).map((p: any) => [String(p.id).toLowerCase(), p.full_name || p.email || "Unnamed user"]));
-    const uuidPattern = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
-    const readable = (text: any) => String(text ?? "").replace(new RegExp(uuidPattern, "gi"), (id) => nameById.get(id.toLowerCase()) || "a user");
+    const nameById = new Map<string, string>(
+      (data.profiles || []).map((p: any) => [
+        String(p.id).toLowerCase(),
+        p.full_name || p.email || "Unnamed user",
+      ]),
+    );
+    const uuidPattern =
+      "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
+    const readable = (text: any) =>
+      String(text ?? "").replace(
+        new RegExp(uuidPattern, "gi"),
+        (id) => nameById.get(id.toLowerCase()) || "a user",
+      );
     const actorName = (log: any) => {
       const stored = String(log.user_name ?? "").trim();
-      if (stored && !new RegExp(`^${uuidPattern}$`, "i").test(stored)) return stored;
+      if (stored && !new RegExp(`^${uuidPattern}$`, "i").test(stored))
+        return stored;
       return nameById.get(String(log.user_id ?? "").toLowerCase()) || "System";
     };
-    const auditLogs = (data.auditLogs || []).filter((log: any) => [actorName(log), readable(log.action), log.log_type, dateFmt(log.created_at)].some((value: any) => String(value ?? "").toLowerCase().includes(auditQuery.toLowerCase())));
-    const auditPageCount = Math.max(1, Math.ceil(auditLogs.length / auditRowsPerPage));
-    const visibleAuditLogs = auditLogs.slice((auditPage - 1) * auditRowsPerPage, auditPage * auditRowsPerPage);
+    const auditLogs = (data.auditLogs || []).filter((log: any) =>
+      [
+        actorName(log),
+        readable(log.action),
+        log.log_type,
+        dateFmt(log.created_at),
+      ].some((value: any) =>
+        String(value ?? "")
+          .toLowerCase()
+          .includes(auditQuery.toLowerCase()),
+      ),
+    );
+    const auditPageCount = Math.max(
+      1,
+      Math.ceil(auditLogs.length / auditRowsPerPage),
+    );
+    const visibleAuditLogs = auditLogs.slice(
+      (auditPage - 1) * auditRowsPerPage,
+      auditPage * auditRowsPerPage,
+    );
     return (
       <section className="panel">
         <div className="panel-heading">
-            <div>
-              <h2>Audit log</h2>
-              <p>
-                A record of who did what and when.
-              </p>
-            </div>
+          <div>
+            <h2>Audit log</h2>
+            <p>A record of who did what and when.</p>
           </div>
-          <TableToolbar query={auditQuery} onQueryChange={value => { setAuditQuery(value); setAuditPage(1); }} placeholder="Search audit events, people, or actions…" label="Search audit log" rowsPerPage={auditRowsPerPage} onRowsPerPageChange={value => { setAuditRowsPerPage(value); setAuditPage(1); }} resultCount={auditLogs.length} />
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>When</th>
-                  <th>User</th>
-                  <th>Action</th>
-                  <th>Type</th>
+        </div>
+        <TableToolbar
+          query={auditQuery}
+          onQueryChange={(value) => {
+            setAuditQuery(value);
+            setAuditPage(1);
+          }}
+          placeholder="Search audit events, people, or actions…"
+          label="Search audit log"
+          rowsPerPage={auditRowsPerPage}
+          onRowsPerPageChange={(value) => {
+            setAuditRowsPerPage(value);
+            setAuditPage(1);
+          }}
+          resultCount={auditLogs.length}
+        />
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>When</th>
+                <th>User</th>
+                <th>Action</th>
+                <th>Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visibleAuditLogs.map((log: any) => (
+                <tr key={log.id}>
+                  <td data-label="When">{dateFmt(log.created_at)}</td>
+                  <td data-label="User">{actorName(log)}</td>
+                  <td data-label="Action">{readable(log.action)}</td>
+                  <td data-label="Type">{log.log_type}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {visibleAuditLogs.map((log: any) => (
-                  <tr key={log.id}>
-                    <td data-label="When">{dateFmt(log.created_at)}</td>
-                    <td data-label="User">{actorName(log)}</td>
-                    <td data-label="Action">{readable(log.action)}</td>
-                    <td data-label="Type">{log.log_type}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {!auditLogs.length && (
-              <EmptyState
-                title="No audit records visible"
-                text="Activity will be recorded here as your team works."
-              />
-            )}
-          </div>
-          <TablePagination page={auditPage} pageCount={auditPageCount} onPageChange={setAuditPage} start={auditLogs.length ? (auditPage - 1) * auditRowsPerPage + 1 : 0} end={Math.min(auditPage * auditRowsPerPage, auditLogs.length)} total={auditLogs.length} />
+              ))}
+            </tbody>
+          </table>
+          {!auditLogs.length && (
+            <EmptyState
+              title="No audit records visible"
+              text="Activity will be recorded here as your team works."
+            />
+          )}
+        </div>
+        <TablePagination
+          page={auditPage}
+          pageCount={auditPageCount}
+          onPageChange={setAuditPage}
+          start={auditLogs.length ? (auditPage - 1) * auditRowsPerPage + 1 : 0}
+          end={Math.min(auditPage * auditRowsPerPage, auditLogs.length)}
+          total={auditLogs.length}
+        />
       </section>
     );
   }
@@ -625,24 +1078,89 @@ export function DashboardRouter({
         <div className="panel-heading">
           <div>
             <h2>Customer records</h2>
-            <p>
-              Registered customers and their contact details.
-            </p>
+            <p>Registered customers and their contact details.</p>
           </div>
         </div>
-        <TableToolbar query={customerQuery} onQueryChange={value => { setCustomerQuery(value); setCustomerPage(1); }} placeholder="Search customer name, email, phone, address, or affiliation…" label="Search customers" rowsPerPage={customerRowsPerPage} onRowsPerPageChange={value => { setCustomerRowsPerPage(value); setCustomerPage(1); }} resultCount={filteredCustomers.length} />
+        <TableToolbar
+          query={customerQuery}
+          onQueryChange={(value) => {
+            setCustomerQuery(value);
+            setCustomerPage(1);
+          }}
+          placeholder="Search customer name, email, phone, address, or affiliation…"
+          label="Search customers"
+          rowsPerPage={customerRowsPerPage}
+          onRowsPerPageChange={(value) => {
+            setCustomerRowsPerPage(value);
+            setCustomerPage(1);
+          }}
+          resultCount={filteredCustomers.length}
+        />
         <div className="table-wrap">
           <table>
-            <thead><tr><th>Customer</th><th>Email</th><th>Phone</th><th>Address</th><th>Company / affiliation</th></tr></thead>
-            <tbody>{visibleCustomers.map((c: any) => {
-              const customerId = c.customer_id || c.id;
-              const companyNames = (data.customerCompanies || []).filter((company: any) => company.customer_id === customerId || company.profile_id === customerId).map((company: any) => company.name || company.company_name).filter(Boolean).join(", ");
-              return <tr key={customerId}><td data-label="Customer"><strong>{c.full_name || c.name || "Unnamed customer"}</strong></td><td data-label="Email">{c.email || "—"}</td><td data-label="Phone">{c.phone || c.phone_number || "—"}</td><td data-label="Address">{c.address || "—"}</td><td data-label="Company / affiliation">{c.company_name || c.affiliation || companyNames || "—"}</td></tr>;
-            })}</tbody>
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Address</th>
+                <th>Company / affiliation</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visibleCustomers.map((c: any) => {
+                const customerId = c.customer_id || c.id;
+                const companyNames = (data.customerCompanies || [])
+                  .filter(
+                    (company: any) =>
+                      company.customer_id === customerId ||
+                      company.profile_id === customerId,
+                  )
+                  .map((company: any) => company.name || company.company_name)
+                  .filter(Boolean)
+                  .join(", ");
+                return (
+                  <tr key={customerId}>
+                    <td data-label="Customer">
+                      <strong>
+                        {c.full_name || c.name || "Unnamed customer"}
+                      </strong>
+                    </td>
+                    <td data-label="Email">{c.email || "—"}</td>
+                    <td data-label="Phone">
+                      {c.phone || c.phone_number || "—"}
+                    </td>
+                    <td data-label="Address">{c.address || "—"}</td>
+                    <td data-label="Company / affiliation">
+                      {c.company_name || c.affiliation || companyNames || "—"}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
           </table>
-          {!filteredCustomers.length && <EmptyState title="No customer records found" text="No customer records match this search, or no customer records are visible to this account." />}
+          {!filteredCustomers.length && (
+            <EmptyState
+              title="No customer records found"
+              text="No customer records match this search, or no customer records are visible to this account."
+            />
+          )}
         </div>
-        <TablePagination page={customerPage} pageCount={customerPageCount} onPageChange={setCustomerPage} start={filteredCustomers.length ? (customerPage - 1) * customerRowsPerPage + 1 : 0} end={Math.min(customerPage * customerRowsPerPage, filteredCustomers.length)} total={filteredCustomers.length} />
+        <TablePagination
+          page={customerPage}
+          pageCount={customerPageCount}
+          onPageChange={setCustomerPage}
+          start={
+            filteredCustomers.length
+              ? (customerPage - 1) * customerRowsPerPage + 1
+              : 0
+          }
+          end={Math.min(
+            customerPage * customerRowsPerPage,
+            filteredCustomers.length,
+          )}
+          total={filteredCustomers.length}
+        />
       </section>
     );
 
@@ -652,9 +1170,7 @@ export function DashboardRouter({
         <div className="panel-heading">
           <div>
             <h2>Your account</h2>
-            <p>
-              Your sign-in details and profile.
-            </p>
+            <p>Your sign-in details and profile.</p>
           </div>
         </div>
         <div className="account-hero">
@@ -669,17 +1185,56 @@ export function DashboardRouter({
             <span className="role-chip">{roleName(profile.role)}</span>
           </div>
         </div>
-        {profile.role === "customer" && <div className="panel account-details"><div><small>Company affiliations</small><strong>{(data.customerCompanies || []).map((c: any) => c.name).join(", ") || "No company affiliation recorded"}</strong></div></div>}
+        {profile.role === "customer" && (
+          <div className="panel account-details">
+            <div>
+              <small>Company affiliations</small>
+              <strong>
+                {(data.customerCompanies || [])
+                  .map((c: any) => c.name)
+                  .join(", ") || "No company affiliation recorded"}
+              </strong>
+            </div>
+          </div>
+        )}
         <div className="account-details">
-          <div><small>Email</small><strong>{profile.email || "Not provided"}</strong></div>
-          <div><small>Role</small><strong>{roleName(profile.role)}</strong></div>
+          <div>
+            <small>Email</small>
+            <strong>{profile.email || "Not provided"}</strong>
+          </div>
+          <div>
+            <small>Role</small>
+            <strong>{roleName(profile.role)}</strong>
+          </div>
         </div>
-        <div className="panel-heading account-form-heading"><div><h2>Profile information</h2><p>Update your contact and delivery details.</p></div></div>
-        <ProfileEditor profile={profile} onSaved={onProfileUpdated || (() => {})} />
-        {profile.role === "customer" && <DeliveryPinSettings profile={profile} station={data.station || DEFAULT_STATION_PIN} busy={busy} action={action} onProfileUpdated={onProfileUpdated}
-          hasActiveDelivery={allOrders.some((o: any) => o.type === "Delivery" && ["PENDING", "CONFIRMED", "OUT FOR-DELIVERY"].includes(o.status))} />}
+        <div className="panel-heading account-form-heading">
+          <div>
+            <h2>Profile information</h2>
+            <p>Update your contact and delivery details.</p>
+          </div>
+        </div>
+        <ProfileEditor
+          profile={profile}
+          onSaved={onProfileUpdated || (() => {})}
+        />
+        {profile.role === "customer" && (
+          <DeliveryPinSettings
+            profile={profile}
+            station={data.station || DEFAULT_STATION_PIN}
+            busy={busy}
+            action={action}
+            onProfileUpdated={onProfileUpdated}
+            hasActiveDelivery={allOrders.some(
+              (o: any) =>
+                o.type === "Delivery" &&
+                ["PENDING", "CONFIRMED", "OUT FOR-DELIVERY"].includes(o.status),
+            )}
+          />
+        )}
         <PasswordChange email={profile.email} />
-        {profile.role === "customer" && <DeleteAccount email={profile.email} onDeleted={onAccountDeleted} />}
+        {profile.role === "customer" && (
+          <DeleteAccount email={profile.email} onDeleted={onAccountDeleted} />
+        )}
       </section>
     );
 
